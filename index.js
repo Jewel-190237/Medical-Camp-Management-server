@@ -86,9 +86,16 @@ async function run() {
             const camp = await campCollections.find().toArray();
             res.send(camp);
         })
+        //single camp details
+        app.get('/singleCamp/:id', async(req, res) => {
+            const id = req.params.id;
+            const query = {_id : ObjectId(id)};
+            const result = await campCollections.findOne(query);
+            res.send(result);
+        })
 
 
-
+ 
 
         // create User
         app.post('/users', async (req, res) => {
