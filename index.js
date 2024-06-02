@@ -33,6 +33,7 @@ async function run() {
         // Send a ping to confirm a successful connection
 
         const userCollections = client.db("MedicalCamp").collection('users');
+        const campCollections = client.db("MedicalCamp").collection('camps');
 
         //jwt related api
         app.post('/jwt', async (req, res) => {
@@ -73,6 +74,14 @@ async function run() {
             }
             next();
         }
+
+        //create Camp
+        app.post('/camps', async(req, res) => {
+            const camp = req.body;
+            const result = await campCollections.insertOne(camp);
+            res.send(result)
+        })
+
 
 
 
