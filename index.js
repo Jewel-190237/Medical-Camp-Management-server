@@ -76,10 +76,15 @@ async function run() {
         }
 
         //create Camp
-        app.post('/camps', async(req, res) => {
+        app.post('/camps', verifyToken, verifyAdmin, async(req, res) => {
             const camp = req.body;
             const result = await campCollections.insertOne(camp);
             res.send(result)
+        })
+        //get camp for showing
+        app.get('/camps', verifyToken, verifyAdmin, async(req, res) => {
+            const camp = await campCollections.find().toArray();
+            res.send(camp);
         })
 
 
