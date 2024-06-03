@@ -13,7 +13,6 @@ app.use(cors());
 app.use(express.json());
 
 
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.kwtddbl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster`;
 
 // console.log(uri)
@@ -28,9 +27,9 @@ const client = new MongoClient(uri, {
 
 async function run() {
     try {
-        // Connect the client to the server	(optional starting in v4.7)
+        // Connect the client to the server	(optional starting in v4.7).
         // await client.connect();
-        // Send a ping to confirm a successful connection
+        // Send a ping to confirm a successful connection.
 
         const userCollections = client.db("MedicalCamp").collection('users');
         const campCollections = client.db("MedicalCamp").collection('camps');
@@ -39,7 +38,7 @@ async function run() {
         app.post('/jwt', async (req, res) => {
             const user = req.body;
             const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-                expiresIn: '1h'
+                expiresIn: '4h'
             });
             res.send(token);
         })
@@ -49,20 +48,20 @@ async function run() {
         const verifyToken = (req, res, next) => {
             // console.log('inside token', req.headers.authorization);
             if (!req.headers.authorization) {
-                return res.status(401).send({ message: 'Unauthorized Access' })
+                return res.status(401).send({ message: 'Unauthorized Access_1' })
             }
             const token = req.headers.authorization.split(' ')[1];
             jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
                 if (err) {
-                    res.status(401).send({ message: 'Unauthorized Access' })
+                    return res.status(401).send({ message: 'Unauthorized Access_2' })
                 }
                 req.decoded = decoded;
-                next()
+                next();
             })
 
         }
 
-        //use verify admin after verifyAdmin
+        //use verify admin after verifyToken
         const verifyAdmin = async (req, res, next) => {
             const email = req.decoded.email;
             const query = { email: email };
@@ -76,26 +75,24 @@ async function run() {
         }
 
         //create Camp
-        app.post('/camps', verifyToken, verifyAdmin, async(req, res) => {
+        app.post('/camps', verifyToken, verifyAdmin, async (req, res) => {
             const camp = req.body;
             const result = await campCollections.insertOne(camp);
             res.send(result)
         })
         //get camp for showing
-        app.get('/camps', verifyToken, verifyAdmin, async(req, res) => {
+        app.get('/camps', verifyToken, verifyAdmin, async (req, res) => {
             const camp = await campCollections.find().toArray();
             res.send(camp);
         })
+
         //single camp details
-        app.get('/singleCamp/:id', async(req, res) => {
+        app.get('/singleCamp/:id', async (req, res) => {
             const id = req.params.id;
-            const query = {_id : ObjectId(id)};
+            const query = { _id: new ObjectId(id) };
             const result = await campCollections.findOne(query);
             res.send(result);
         })
-
-
- 
 
         // create User
         app.post('/users', async (req, res) => {
@@ -169,5 +166,5 @@ app.get('/', (req, res) => {
 })
 
 app.listen(PORT, () => {
-    console.log(`assignment is running on ${PORT}`)
+    console.log(`assignment 12 is running on ${PORT}`)
 })
