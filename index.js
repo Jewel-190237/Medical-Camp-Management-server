@@ -81,20 +81,26 @@ async function run() {
             res.send(result);
         })
 
+        // get registered camp for Manage Registered Camp
+        app.get('/registeredCamp', async(req, res) => {
+            const result = await registeredUserCollections.find().toArray();
+            res.send(result);
+        })
+
         //create Camp
         app.post('/camps', verifyToken, verifyAdmin, async (req, res) => {
             const camp = req.body;
             const result = await campCollections.insertOne(camp);
-            res.send(result)
+            res.send(result);
         })
         //get camp for showing
-        app.get('/camps', verifyToken, verifyAdmin, async (req, res) => {
+        app.get('/camps', verifyToken, async (req, res) => {
             const camp = await campCollections.find().toArray();
             res.send(camp);
         })
 
         //single camp details
-        app.get('/singleCamp/:id', async (req, res) => {
+        app.get('/singleCamp/:id',verifyToken, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await campCollections.findOne(query);
