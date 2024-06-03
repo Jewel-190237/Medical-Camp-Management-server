@@ -75,14 +75,14 @@ async function run() {
             next();
         }
         // store registeredUser
-        app.post('/registeredUserCamp', async(req, res) => {
+        app.post('/registeredUserCamp', async (req, res) => {
             const registeredUserCamp = req.body;
             const result = await registeredUserCollections.insertOne(registeredUserCamp);
             res.send(result);
         })
 
         // get registered camp for Manage Registered Camp
-        app.get('/registeredCamp', async(req, res) => {
+        app.get('/registeredCamp', async (req, res) => {
             const result = await registeredUserCollections.find().toArray();
             res.send(result);
         })
@@ -98,9 +98,16 @@ async function run() {
             const camp = await campCollections.find().toArray();
             res.send(camp);
         })
+        //delete a camp for manage camp page
+        app.delete('/deleteCamp/:id', verifyToken, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await campCollections.deleteOne(query);
+            res.send(result)
+        })
 
         //single camp details
-        app.get('/singleCamp/:id',verifyToken, async (req, res) => {
+        app.get('/singleCamp/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await campCollections.findOne(query);
@@ -138,7 +145,7 @@ async function run() {
             const id = req.params.id;
             const result = await userCollections.find({ email: id }).toArray();
             res.send(result);
-          })
+        })
 
         //Make Admin
         app.patch('/users/admin/:id', verifyToken, verifyAdmin, async (req, res) => {
