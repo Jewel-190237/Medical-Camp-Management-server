@@ -94,10 +94,19 @@ async function run() {
             res.send(result);
         })
         //get camp for showing
-        app.get('/camps', verifyToken, async (req, res) => {
+        app.get('/camps', async (req, res) => {
             const camp = await campCollections.find().toArray();
             res.send(camp);
         })
+
+        //update camp for update camp page
+        app.get('/updateCamp/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await campCollections.findOne(query);
+            res.send(result);
+        })
+        
         //delete a camp for manage camp page
         app.delete('/deleteCamp/:id', verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id;
