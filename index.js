@@ -33,6 +33,7 @@ async function run() {
 
         const userCollections = client.db("MedicalCamp").collection('users');
         const campCollections = client.db("MedicalCamp").collection('camps');
+        const registeredUserCollections = client.db("MedicalCamp").collection('registeredUser');
 
         //jwt related api
         app.post('/jwt', async (req, res) => {
@@ -73,6 +74,12 @@ async function run() {
             }
             next();
         }
+        // store registeredUser
+        app.post('/registeredUserCamp', async(req, res) => {
+            const registeredUserCamp = req.body;
+            const result = await registeredUserCollections.insertOne(registeredUserCamp);
+            res.send(result);
+        })
 
         //create Camp
         app.post('/camps', verifyToken, verifyAdmin, async (req, res) => {
@@ -88,6 +95,14 @@ async function run() {
 
         //single camp details
         app.get('/singleCamp/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await campCollections.findOne(query);
+            res.send(result);
+        })
+
+        //join camp details
+        app.get('/joinCamp/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await campCollections.findOne(query);
@@ -111,6 +126,13 @@ async function run() {
             const result = await userCollections.find().toArray();
             res.send(result)
         })
+
+        // get current user using email
+        app.get('/joinUser/:id', async (req, res) => {
+            const id = req.params.id;
+            const result = await userCollections.find({ email: id }).toArray();
+            res.send(result);
+          })
 
         //Make Admin
         app.patch('/users/admin/:id', verifyToken, verifyAdmin, async (req, res) => {
