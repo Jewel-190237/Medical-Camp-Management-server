@@ -168,7 +168,7 @@ async function run() {
         //user Related Apis
         app.get('/users', verifyToken, verifyAdmin, async (req, res) => {
             const result = await userCollections.find().toArray();
-            res.send(result)
+            res.send(result);
         })
 
         // get current user using email
@@ -176,6 +176,32 @@ async function run() {
             const id = req.params.id;
             const result = await userCollections.find({ email: id }).toArray();
             res.send(result);
+        })
+        //get current user for update profile page
+        app.get('/updateProfile/:id', async (req, res) => {
+            const id = req.params.id;
+            const result = await userCollections.find({ email: id }).toArray();
+            res.send(result);
+        })
+
+        //update profile
+        app.put('/updateProfile/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { email: new ObjectId(id) };
+            console.log(filter);
+            const options = { upsert: true };
+            const updateUser = req.body;
+            const updateDocs = {
+                $set: {
+                    name: updateUser.name,
+                    email: updateUser.email,
+                    photo: updateUser.photo,
+                }
+            }
+            const result = await userCollections.updateOne(filter, updateDocs, options);
+            console.log(result);
+            res.send(result);
+            
         })
 
         //Make Admin
