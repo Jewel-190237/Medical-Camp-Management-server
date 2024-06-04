@@ -106,7 +106,7 @@ async function run() {
             const result = await campCollections.findOne(query);
             res.send(result);
         })
-        
+
         //delete a camp for manage camp page
         app.delete('/deleteCamp/:id', verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id;
@@ -129,6 +129,28 @@ async function run() {
             const query = { _id: new ObjectId(id) };
             const result = await campCollections.findOne(query);
             res.send(result);
+        })
+
+        //update camp for updateCamp page
+        app.put('/updateCamp/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const options = { upsert: true };
+            const updateCamp = req.body;
+            const updateDocs = {
+                $set: {
+                    campName: updateCamp.campName,
+                    participantCount: updateCamp.participantCount,
+                    healthCarePName: updateCamp.healthCarePName,
+                    campFees: updateCamp.campFees,
+                    photo_url: updateCamp.photo_url,
+                    time: updateCamp.time,
+                    description: updateCamp.description,
+                    location: updateCamp.location
+                }
+            }
+            const result = await campCollections.updateOne(filter, updateDocs, options);
+            res.send(result)
         })
 
         // create User
