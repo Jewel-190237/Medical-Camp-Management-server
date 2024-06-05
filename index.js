@@ -87,6 +87,25 @@ async function run() {
             res.send(result);
         })
 
+        //get registered camp for participant of registered camp page
+        app.get('/registeredCampParticipant/:id', async (req, res) => {
+            const id = req.params.id;
+            const result = await registeredUserCollections.find({email: id}).toArray();
+            res.send(result);
+            // const result = await userCollections.find({ email: id }).toArray();
+        })
+        // Alternate way to get registered camp for participant of registered camp page
+        app.get('/registeredCampParticipantN', verifyToken, async(req, res) => {
+            console.log(req.query.email);
+            
+            let query = {};
+            if(req.query?.email){
+                query =  {email: req.query.email}
+            }
+            const result = await registeredUserCollections.find(query).toArray();
+            res.send(result);
+
+        })
         //create Camp
         app.post('/camps', verifyToken, verifyAdmin, async (req, res) => {
             const camp = req.body;
@@ -116,7 +135,7 @@ async function run() {
         })
 
         //single camp details
-        app.get('/singleCamp/:id', verifyToken, async (req, res) => {
+        app.get('/singleCamp/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await campCollections.findOne(query);
@@ -201,7 +220,7 @@ async function run() {
             const result = await userCollections.updateOne(filter, updateDocs, options);
             console.log(result);
             res.send(result);
-            
+
         })
 
         //Make Admin
