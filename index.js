@@ -36,6 +36,7 @@ async function run() {
 
         const userCollections = client.db("MedicalCamp").collection('users');
         const campCollections = client.db("MedicalCamp").collection('camps');
+        const paymentCollections = client.db("MedicalCamp").collection('payments');
         const registeredUserCollections = client.db("MedicalCamp").collection('registeredUser');
 
         //jwt related api
@@ -84,6 +85,31 @@ async function run() {
             res.send(result);
         })
 
+        //update registered after payment
+        app.patch('/updateRegisteredCamp/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log(id);
+            const filter = { _id: new ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    payment: 'paid',
+                    conformationStatus: 'confirmed',
+                    cancelButton: 'noCancel',
+                    feedback: 'Well'
+                }
+            }
+            const result = await registeredUserCollections.updateOne(filter, updateDoc);
+            res.send(result);
+        })
+
+        //delete a registered camp after clicking cancel button in registered camp gage
+        app.delete('/deleteRegisteredCamp/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await registeredUserCollections.deleteOne(query);
+            res.send(result);
+        })
+
         // get registered camp for Manage Registered Camp
         app.get('/registeredCamp', async (req, res) => {
             const result = await registeredUserCollections.find().toArray();
@@ -100,7 +126,6 @@ async function run() {
         // Alternate way to get registered camp for participant of registered camp page
         app.get('/registeredCampParticipantN', async (req, res) => {
             // console.log(req.query.email);
-
             let query = {};
             if (req.query?.email) {
                 query = { email: req.query.email }
@@ -134,7 +159,7 @@ async function run() {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const result = await campCollections.deleteOne(query);
-            res.send(result)
+            res.send(result);
         })
 
         //single camp details
@@ -216,7 +241,7 @@ async function run() {
         //update profile
         app.put('/updateProfile/:id', async (req, res) => {
             const id = req.params.id;
-            const filter = { email: new ObjectId(id) };
+            const filter = { _id: new ObjectId(id) };
             const options = { upsert: true };
             const updateUser = req.body;
             const updateDocs = {
@@ -269,6 +294,7 @@ async function run() {
             res.send(result);
         })
 
+        //payment related API
         // payment intent
         app.post('/create-payment-intent', async (req, res) => {
             const { price } = req.body;
@@ -283,6 +309,23 @@ async function run() {
                 clientSecret: paymentIntent.client_secret
             })
 
+        })
+        //save to data base payment information
+        app.post('/payment', async (req, res) => {
+            const payment = req.body;
+            const result = await paymentCollections.insertOne(payment);
+            console.log(result);
+            res.send(result);
+        })
+        //get payment history for payment history page for participant
+        app.get('/payment/:email', verifyToken, async (req, res) => {
+            const query = { email: req.params.email }
+            if (req.params.email !== req.decoded.email) {
+                return res.status(403).send({ message: 'Forbidden access' })
+            }
+            const result = await paymentCollections.find(query).toArray();
+            res.send(result);
+            console.log(result)
         })
 
         await client.db("admin").command({ ping: 1 });
