@@ -318,10 +318,10 @@ async function run() {
             res.send(result);
         })
         //get payment history for payment history page for participant
-        app.get('/payment/:email', verifyToken, async (req, res) => {
-            const query = { email: req.params.email }
-            if (req.params.email !== req.decoded.email) {
-                return res.status(403).send({ message: 'Forbidden access' })
+        app.get('/payment', verifyToken, async (req, res) => {
+            let query = {};
+            if(req.query?.email){
+                query =  {email: req.query.email}
             }
             const result = await paymentCollections.find(query).toArray();
             res.send(result);
