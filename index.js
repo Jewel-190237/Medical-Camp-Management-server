@@ -1,8 +1,11 @@
 const express = require('express');
 const app = express();
+require('dotenv').config();
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
+// const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
+
 const PORT = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
@@ -90,17 +93,17 @@ async function run() {
         //get registered camp for participant of registered camp page
         app.get('/registeredCampParticipant/:id', async (req, res) => {
             const id = req.params.id;
-            const result = await registeredUserCollections.find({email: id}).toArray();
+            const result = await registeredUserCollections.find({ email: id }).toArray();
             res.send(result);
             // const result = await userCollections.find({ email: id }).toArray();
         })
         // Alternate way to get registered camp for participant of registered camp page
-        app.get('/registeredCampParticipantN', verifyToken, async(req, res) => {
-            console.log(req.query.email);
-            
+        app.get('/registeredCampParticipantN', async (req, res) => {
+            // console.log(req.query.email);
+
             let query = {};
-            if(req.query?.email){
-                query =  {email: req.query.email}
+            if (req.query?.email) {
+                query = { email: req.query.email }
             }
             const result = await registeredUserCollections.find(query).toArray();
             res.send(result);
@@ -140,6 +143,13 @@ async function run() {
             const query = { _id: new ObjectId(id) };
             const result = await campCollections.findOne(query);
             res.send(result);
+        })
+        // Load a single camp for payment page
+        app.get('/camp/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const camp = await registeredUserCollections.findOne(query);
+            res.send(camp);
         })
 
         //join camp details
@@ -207,7 +217,6 @@ async function run() {
         app.put('/updateProfile/:id', async (req, res) => {
             const id = req.params.id;
             const filter = { email: new ObjectId(id) };
-            console.log(filter);
             const options = { upsert: true };
             const updateUser = req.body;
             const updateDocs = {
@@ -218,7 +227,6 @@ async function run() {
                 }
             }
             const result = await userCollections.updateOne(filter, updateDocs, options);
-            console.log(result);
             res.send(result);
 
         })
@@ -261,7 +269,21 @@ async function run() {
             res.send(result);
         })
 
+        // payment intent
+        app.post('/create-payment-intent', async (req, res) => {
+            const { price } = req.body;
+            const amount = parseInt(price * 100);
 
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: "usd",
+                payment_method_types: ['card']
+            });
+            res.send({
+                clientSecret: paymentIntent.client_secret
+            })
+
+        })
 
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
