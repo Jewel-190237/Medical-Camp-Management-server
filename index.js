@@ -225,6 +225,18 @@ async function run() {
             res.send(result);
         })
 
+        //get a specific user using email for both admin and user home page
+        app.get('/currentUser', async (req, res) => {
+            let query = {};
+            // console.log(req.query.email);
+            if (req.query?.email) {
+                query = { email: req.query.email };
+            }
+            const result = await userCollections.find(query).toArray();
+            res.send(result);
+            // console.log(result)
+        })
+
         // get current user using email
         app.get('/joinUser/:id', async (req, res) => {
             const id = req.params.id;
@@ -253,7 +265,6 @@ async function run() {
             }
             const result = await userCollections.updateOne(filter, updateDocs, options);
             res.send(result);
-
         })
 
         //Make Admin
@@ -320,12 +331,40 @@ async function run() {
         //get payment history for payment history page for participant
         app.get('/payment', verifyToken, async (req, res) => {
             let query = {};
-            if(req.query?.email){
-                query =  {email: req.query.email}
+            if (req.query?.email) {
+                query = { email: req.query.email }
             }
             const result = await paymentCollections.find(query).toArray();
             res.send(result);
             // console.log(result)
+        })
+
+        //state or analytics
+        app.get('/admin-states',  async(req, res) => {
+            const users = await userCollections.estimatedDocumentCount();
+            const camps = await campCollections.estimatedDocumentCount();
+            const registeredCamps = await registeredUserCollections.estimatedDocumentCount();
+            const payments = await paymentCollections.estimatedDocumentCount();
+
+            const result = await paymentCollections.aggregate([
+                {
+                    $group: {
+                        _id: null,
+                        totalRevenue: {
+                            $sum: '$amount'
+                        }
+                    }
+                }
+            ]).toArray()
+            // const revenue = result.length > 0 ? result[0].totalRevenue : '0'
+            const revenue = result[0].totalRevenue;
+            res.send({
+                users,
+                camps,
+                registeredCamps,
+                payments,
+                revenue
+            })
         })
 
         await client.db("admin").command({ ping: 1 });
