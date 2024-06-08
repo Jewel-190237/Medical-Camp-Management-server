@@ -85,7 +85,7 @@ async function run() {
             res.send(result);
         })
 
-        //update registered after payment
+        //update registered after payment 
         app.patch('/updateRegisteredCamp/:id', async (req, res) => {
             const id = req.params.id;
             // console.log(id);
@@ -93,9 +93,22 @@ async function run() {
             const updateDoc = {
                 $set: {
                     payment: 'paid',
-                    conformationStatus: 'confirmed',
+                    conformationStatus: 'pending',
                     cancelButton: 'noCancel',
                     feedback: 'Well'
+                }
+            }
+            const result = await registeredUserCollections.updateOne(filter, updateDoc);
+            res.send(result);
+        })
+        //update registered camp for Admin for conformation status
+        app.patch('/updateRegisteredCampAdmin/:id', async (req, res) => {
+            const id = req.params.id;
+            // console.log(id);
+            const filter = { _id: new ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    conformationStatus: 'confirmed',
                 }
             }
             const result = await registeredUserCollections.updateOne(filter, updateDoc);
